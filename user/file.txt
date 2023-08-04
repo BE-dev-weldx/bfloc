@@ -1,0 +1,10 @@
+
+const s3 = new S3({
+
+  region: 'us-east-1',
+
+  accessKeyId: 'AKIAZR7SRGPF5WTSFVQK',
+
+  secretAccessKey: '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',
+
+});
