@@ -10,6 +10,9 @@ import {
   Keyboard,
   TouchableOpacity,
   CheckBox,
+  FlatList,
+  useColorScheme,
+  Platform,
 } from 'react-native';
 // import {} from
 
@@ -17,6 +20,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 // import 'react-phone-number-input/style.css'
 
 const Registration = ({navigation}) => {
+  const colorScheme = useColorScheme()
+  const isDarkMode = colorScheme === 'dark'
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
 
@@ -32,56 +37,77 @@ const Registration = ({navigation}) => {
   const [state, setState] = useState("Odisha");
   const [district, setDistrict] = useState("");
   const [pincode, setPincode] = useState("");
-  const [subdistrict, setSubdistrict] = useState("");
+  const [block, setBlock] = useState("");
+  // const [block, setBlock] = useState("");
   const [village, setVillage] = useState("");
   const [panchayat, setPanchayat] = useState("");
-
+  const [districtResult, setDistrictResult] = useState([]);
+  const [blockResult, setBlockResult] = useState([]);
+  const [panchayatResult, setPanchayatResult] = useState([]);
+  const [villageResult, setVillageResult] = useState([]);
+  const [showd, setShowd] = useState(false);
+  const [showb, setShowb] = useState(false);
+  const [showp, setShowp] = useState(false);
+  const [showv, setShowv] = useState(false);
   const r = [];
-
-  const fetchCountries = async (district) => {
+  
+  const fetchDistrict = async (district) => {
+    console.log('instant run')
     try {
-      const response = await fetch('https://biofloc.onrender.com/autofil_district', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-            "district": district,
-         }),
-      });
-      
+      const response = await fetch(
+        "https://biofloc.onrender.com/autofil_district",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            district: district,
+          }),
+        }
+      );
+
       if (response.ok) {
         const data = await response.json();
-        console.log(data); // Process the fetched countries data
+        // console.log(data,'district')
+        setDistrictResult(data);
+        setShowd(true);
       } else {
-        console.log('Error:', response.status);
+        console.log("Error:", response.status);
       }
     } catch (error) {
-      console.log('Error:', error);
+      console.log("Error:", error);
     }
   };
 
-  const fetchCountries2 = async (subdistrict) => {
+  const fetchBlock = async (block) => {
+    // console.log('instant run2')
+    // console.log(district)
     try {
-      const response = await fetch('https://biofloc.onrender.com/autofil_subdistrict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-            "district": district,
-            "subdistrict": subdistrict,
-         }),
-      });
-      
+      const response = await fetch(
+        "https://biofloc.onrender.com/autofil_block",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            district: district,
+            block: block,
+          }),
+        }
+      );
+
       if (response.ok) {
         const data = await response.json();
-        console.log(data); // Process the fetched countries data
+        // console.log(data)
+        setBlockResult(data);
+        setShowb(true);
       } else {
-        console.log('Error:', response.status);
+        console.log("Error:", response.status);
       }
     } catch (error) {
-      console.log('Error:', error);
+      console.log("Error:", error);
     }
   };
 
@@ -93,7 +119,7 @@ const Registration = ({navigation}) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-            "subdistrict": subdistrict,
+            "block": block,
             "village": village,
          }),
       });
@@ -109,49 +135,113 @@ const Registration = ({navigation}) => {
     }
   };
 
-  const fetchCountries4 = async (panchayat) => {
-    // console.log(panchayat)
-  try {
-      const response = await fetch('https://biofloc.onrender.com/autofil_panchayat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-            "subdistrict": subdistrict,
-            "panchayat": panchayat,
-         }),
-      });
-      
+  const fetchPanchayat = async (panchayat) => {
+    try {
+      const response = await fetch(
+        "https://biofloc.onrender.com/autofil_panchayat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            panchayat: panchayat,
+            block: block,
+          }),
+        }
+      );
+
       if (response.ok) {
         const data = await response.json();
-        console.log(data); // Process the fetched countries data
+        setPanchayatResult(data);
+        setShowp(true);
       } else {
-        console.log('Error:', response.status);
+        console.log("Error:", response.status);
       }
     } catch (error) {
-      console.log('Error:', error);
+      console.log("Error:", error);
     }
   };
   
-  const handleSearchTextChange = (text) => {
+  const fetchVillage = async (village) => {
+    try {
+      const response = await fetch(
+        "https://biofloc.onrender.com/autofil_village",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            panchayat: panchayat,
+            village: village,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setVillageResult(data);
+        setShowv(true);
+      } else {
+        console.log("Error:", response.status);
+      }
+    } catch (error) {
+      console.log("Error:", error);
+    }
+  };
+
+
+  const handleSearchDistrictChange = (text) => {
     setDistrict(text);
-    fetchCountries(text); // Call the fetch function whenever the text changes
+    if (text !== "") {
+      setDistrictResult([]) // Reset the result when a district is selected
+    }
+    fetchDistrict(text);
   };
 
-  const handleSearchTextChange2 = (text) => {
-    setSubdistrict(text);
-    fetchCountries2(text, district); // Call the fetch function whenever the text changes
+
+
+  const handleSearchBlockChange = (text) => {
+    setBlock(text);
+    if (text !== "") {
+      setBlockResult([]) // Reset the result when a district is selected
+    }
+    fetchBlock(text);
   };
 
-  const handleSearchTextChange3 = (text) => {
-    setVillage(text);
-    // fetchCountries3(text, subdistrict); // Call the fetch function whenever the text changes
-  };
-
-  const handleSearchTextChange4 = (text) => {
+  const handleSearchPanchayatChange = (text) => {
     setPanchayat(text);
-    fetchCountries4(text, village); // Call the fetch function whenever the text changes
+    if (text !== "") {
+     setPanchayatResult([]) // Reset the result when a district is selected
+    }
+    fetchPanchayat(text);
+  };
+
+  const handleSearchVillageChange = (text) => {
+    setVillage(text);
+    if (text !== "") {
+      setVillageResult([]) // Reset the result when a district is selected
+    }
+    fetchVillage(text);
+  };
+
+  
+  const clickItemD = (item) => {
+    setDistrict(item);
+    setShowd(false);
+  };
+  const clickItemB = (item) => {
+    setBlock(item);
+    setShowb(false);
+  };
+  const clickItemP = (item) => {
+    setPanchayat(item);
+    setShowp(false);
+  };
+  const clickItemV = (item) => {
+    setVillage(item);
+    setShowv(false);
   };
 
   const submitButtonClicked = () =>{
@@ -168,7 +258,7 @@ const Registration = ({navigation}) => {
         "pwd": password,
         "state": state,
         "district": district,
-        "block": subdistrict,
+        "block": block,
         "panchayat": panchayat,
         "village": village,
       })
@@ -185,11 +275,20 @@ const Registration = ({navigation}) => {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : null}
+  >
+    <FlatList
+    style={isDarkMode ? [styles.container, {backgroundColor:'black'}] : styles.container}
+    data={[{ key: 'registration' }]}
+    renderItem={() => (
+    <View >
+     
       <Text style={styles.header}>Registration</Text>
-      <KeyboardAwareScrollView>
+      
         <View style={styles.inner}>
-          <View style={styles.btnContainer}>
+          <View style={isDarkMode ?[styles.btnContainer, {backgroundColor:'black'}] :styles.btnContainer}>
             <TextInput placeholder="First name" style={styles.textInput} onChangeText={setF_name} value={f_name} />
             <TextInput placeholder="Last name" style={styles.textInput} onChangeText={setL_name} value={l_name} />
             <TextInput
@@ -198,10 +297,99 @@ const Registration = ({navigation}) => {
               onChangeText={setPhone} value={phone}
             />
             <TextInput placeholder="State" style={styles.textInput} onChangeText={setState} value={state} />
-            <TextInput placeholder="District" style={styles.textInput} onChangeText={handleSearchTextChange} value={district} />
-            <TextInput placeholder="Block" style={styles.textInput} onChangeText={handleSearchTextChange2} value={subdistrict}/>
-            <TextInput placeholder="Panchayat" style={styles.textInput} onChangeText={handleSearchTextChange4} value={panchayat}/>
-            <TextInput placeholder="Village" style={styles.textInput} onChangeText={handleSearchTextChange3} value={village} />
+            <TextInput
+            style={styles.input}
+            placeholder="District"
+            value={district}
+            onChangeText={handleSearchDistrictChange}
+          />
+          {/* Display the filtered districts */}
+          {showd === true ? (
+         
+              <FlatList
+                data={districtResult}
+                keyExtractor={(item, index) => `district_${index}`}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => clickItemD(item)}>
+                    <Text style={styles.textInput}>
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                // style={{ maxHeight: item.length * 30 }} // Adjust the item height as needed (e.g., 30)
+              />
+          
+          ) : null}
+
+             <TextInput
+            style={styles.input}
+            placeholder="Block"
+            value={block}
+            onChangeText={handleSearchBlockChange}
+          />
+          {showb === true ? (
+         
+              <FlatList
+                data={blockResult}
+                keyExtractor={(item, index) => `block_${index}`}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => clickItemB(item)}>
+                    <Text style={styles.textInput}>
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                // style={{ maxHeight: result.length * 30 }} // Adjust the item height as needed (e.g., 30)
+              />
+         
+          ) : null}
+
+
+           <TextInput
+            style={styles.input}
+            placeholder="Panchayat"
+            value={panchayat}
+            onChangeText={handleSearchPanchayatChange}
+          />
+          {showp === true ? (
+      
+              <FlatList
+                data={panchayatResult}
+                keyExtractor={(item, index) => `panchayat_${index}`}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => clickItemP(item)}>
+                    <Text style={styles.textInput}>
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                // style={{ maxHeight: result.length * 30 }} // Adjust the item height as needed (e.g., 30)
+              />
+          
+          ) : null}
+
+           <TextInput
+            style={styles.input}
+            placeholder="Village"
+            value={village}
+            onChangeText={handleSearchVillageChange}
+          />
+          {showv === true ? (
+      
+              <FlatList
+                data={villageResult}
+                keyExtractor={(item, index) => `village_${index}`}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => clickItemV(item)}>
+                    <Text style={styles.textInput}>
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                // style={{ maxHeight: result.length * 30 }} // Adjust the item height as needed (e.g., 30)
+              />
+       
+          ) : null}
             <TextInput placeholder="Pincode" style={styles.textInput} onChangeText={setPincode} value={pincode} />
             {showPassword ? (
               <TextInput
@@ -235,14 +423,17 @@ const Registration = ({navigation}) => {
             <TouchableOpacity
               style={styles.showPasswordButton}
               onPress={()=>{navigation.navigate('Login')}}>
-              <Text style={{fontSize:16,color:'blue', marginVertical:5,}}>
+              <Text style={isDarkMode?[styles.loginbtn, {color:'#57d100'}]:styles.loginbtn}>
                 login
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAwareScrollView>
+      
     </View>
+       )}
+       />
+    </KeyboardAvoidingView>
   );
 };
 
@@ -250,7 +441,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor:'white',
-    paddingTop:'10%',
+    paddingTop:'5%',
   },
   inner: {
     marginHorizontal:20,
@@ -263,10 +454,10 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: 35,
-    borderColor: '#000000',
-    borderBottomWidth: 1,
-    borderBottomColor:'#A2A2A2',
-    marginBottom: 23,
+    // borderColor: '#000000',
+    // borderBottomWidth: 1,
+    // borderBottomColor:'#A2A2A2',
+    marginBottom: 15,
     paddingLeft: 2,
   },
   showPasswordButton: {
@@ -282,11 +473,12 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     backgroundColor: 'white',
-    marginTop: 12,
+    marginTop: 16,
   },
   passwd: {
     marginBottom: 5,
   },
+  loginbtn:{fontSize:18,color:'blue', marginVertical:5,}
 });
 
 export default Registration;

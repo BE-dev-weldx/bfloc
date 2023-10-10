@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import firebase from '@react-native-firebase/app';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Login from './user/Login';
 import Registration from './user/Registration';
 import Dashboard from './user/Dashboard';
@@ -16,92 +16,75 @@ import Forget from './user/Forget';
 import Notification from './user/Notification';
 import SplashScreen from './SplashScreen';
 import Profile  from './user/Profile';
-
-import messaging from '@react-native-firebase/messaging';
-
 const Stack = createNativeStackNavigator();
-
-
-
-
-    //   const response = await fetch("https://biofloc.onrender.com/post_fcm_token", {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({"fcm_token":fcmtoken}),
-    //     });
-    
-    //     if (!response.ok) {
-    //       throw new Error('Network response was not ok');
-    //     }
-    
-    //     const result = await response.json();
-    //     console.log(result)
-    // } catch (err) {
-    //   console.log(err.message);
-    // }
-  
-  // else{
-  //   const response = await fetch("https://biofloc.onrender.com/post_fcm_token", {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify({"fcm_token":fcmtoken}),
-  //       });
-    
-  //       if (!response.ok) {
-  //         throw new Error('Network response was not ok');
-  //       }
-    
-  //       const result = await response.json();
-  //       console.log(result)
-  // }
-// }
-
- // Step 2: Get the navigation object using useNavigation
-
- const unsubscribeNotificationOpenedApp = messaging().onNotificationOpenedApp((remoteMessage) => {
-  console.log('asdfghjkl', remoteMessage);
-
-  // Step 3: Handle the behavior you want when the user opens the app by clicking the notification
-  // For example, navigate to a specific screen based on the notification data.
-
-  // Assuming the notification data contains a "screen" key that specifies the target screen name
-
-    // navigation.navigate('Notification');
-
-});
-
-
 export default function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const[isadmin, setIsadmin] = useState(false)
+  // const [userData, setUserData] = useState(null);
+  // const [userCode, setUserCode] = useState(false);
+  const [isSplashLoadingComplete, setIsSplashLoadingComplete] = useState(false);
 
-  // const [result, setResult] = useState('');
   useEffect(() => {
-   
-    // setResult(result);
-    // console.log(result)
+    const check = async () => {
+      const code = await AsyncStorage.getItem('logcode');
+      if (code) {
+        // const udt = await AsyncStorage.getItem('udata');
+        // // setUserCode(true);
+        // // setUserData(JSON.parse(udt));
+        const lastChar = code.charAt(code.length - 1);
+        if(lastChar === 'n'){
+          setIsadmin(true)
+          setLoggedIn(true);
+        }
+        setLoggedIn(true);
+
+      } else {
+       
+      }
+      // Operations inside useEffect are complete
+      setIsSplashLoadingComplete(true);
+    };
+    check();
   }, []);
 
-  
+  if (!isSplashLoadingComplete) {
+    // Show SplashScreen until operations are complete
+    return <SplashScreen />;
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator headerMode="none">      
-        <Stack.Screen name='SplashScreen' component={SplashScreen} options={{headerShown: false}}/>
-        <Stack.Screen name='Login' component={Login} options={{headerShown: false}}/>
-        <Stack.Screen name='Camera' component={Camera} options={{headerShown:false}}/>
-        {/* <Stack.Screen name='Login' options={{headerShown: false}}>{() => <Login fcmtoken={result}/>}</Stack.Screen> */}
-
-        <Stack.Screen name='Register' component={Registration} options={{headerShown: false}}/>
-        <Stack.Screen name='Dashboard' component={Dashboard} options={{headerShown: false}}/>
-        <Stack.Screen name='Admin' component={Admin} options={{headerShown: false}}/>
-        <Stack.Screen name='Forget' component={Forget} options={{headerShown: false}}/>
-        <Stack.Screen name='Notification' component={Notification} options={{headerShown: false}}/>
-        {/* <Stack.Screen name='Notification' component={Notification} options={{headerShown: false}}/> */}
-        <Stack.Screen name='Profile' component={Profile} options={{headerShown: false}}/>
+      <Stack.Navigator headerMode="none">
+        {loggedIn ? (
+  // Show these screens only when loggedIn is true
+  isadmin ? (
+    <>
+    <Stack.Screen name='Admin' component={Admin} options={{ headerShown: false }} />
+    <Stack.Screen name='Login' component={Login} options={{ headerShown: false }} />
+    </>
+  ) : (
+    <>
+      <Stack.Screen name='Dashboard' component={Dashboard} options={{ headerShown: false }} />
+      <Stack.Screen name='Camera' component={Camera} options={{ headerShown: false }} />
+      <Stack.Screen name='Admin' component={Admin} options={{ headerShown: false }} />
+      <Stack.Screen name='Notification' component={Notification} options={{ headerShown: false }} />
+      <Stack.Screen name='Profile' component={Profile} options={{ headerShown: false }} />
+      <Stack.Screen name='Login' component={Login} options={{ headerShown: false }} />
+      
+    </>
+  )
+) : (
+  // Show these screens only when loggedIn is false
+  <>
+    <Stack.Screen name='Login' component={Login} options={{ headerShown: false }} />
+    <Stack.Screen name='Dashboard' component={Dashboard} options={{ headerShown: false }} />
+    <Stack.Screen name='Forget' component={Forget} options={{ headerShown: false }} />
+    <Stack.Screen name='Admin' component={Admin} options={{ headerShown: false }} />
+    <Stack.Screen name='Register' component={Registration} options={{ headerShown: false }} />
+  </>
+)
+}
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-

@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert
+  Alert,
+  useColorScheme
 } from 'react-native';
 import Modal from 'react-native-modal';
 
@@ -16,6 +17,9 @@ import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login({ navigation }) {
+  const colorScheme = useColorScheme(); // Get the color scheme (light or dark)
+  // console.log(colorScheme)
+  const isDarkMode = colorScheme === 'dark';
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
@@ -53,7 +57,7 @@ export default function Login({ navigation }) {
       }
     };
 
-    checkCredentials();
+    // checkCredentials();
     getFCMToken();
   }, []);
 
@@ -74,12 +78,21 @@ export default function Login({ navigation }) {
       .then((response) => response.json())
       .then(async (data) => {
         if (data !== 'invalid credentials !') {
-          await AsyncStorage.setItem('username', data.phone);
-          await AsyncStorage.setItem('password', data.passwords);
+          // await AsyncStorage.setItem('username', data.phone);
+          // await AsyncStorage.setItem('password', data.passwords);
+          // await AsyncStorage.setItem('logcode',data.phone+data.passwords)
+          // await AsyncStorage.setItem('udata',JSON.stringify(data))
 
           if (data.roles !== null && data.roles === 'user') {
+            await AsyncStorage.setItem('logcode',data.phone+data.passwords+data.roles)
+            await AsyncStorage.setItem('udata',JSON.stringify(data))
+  
             navigation.navigate('Dashboard', { data });
+            // console.log('dashboard'+data)
           } else if (data.ac_role !== null && data.ac_role === 'admin') {
+            await AsyncStorage.setItem('logcode',data.phone+data.passwords+data.ac_role)
+            // await AsyncStorage.setItem('udata',JSON.stringify(data))
+  
             navigation.navigate('Admin');
           }
         } else {
@@ -122,12 +135,12 @@ export default function Login({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={isDarkMode ? [styles.container, {backgroundColor:'black'}] : styles.container}>
       <View style={styles.logincontainer}>
         <Text style={styles.heading}>Biofloc  Monitoring</Text>
         <TextInput
           placeholder="Phone no"
-          style={styles.textinput}
+          style={isDarkMode ?   styles.textinput_d : styles.textinput }
           value={phone}
           onChangeText={setPhone}
         />
@@ -135,14 +148,14 @@ export default function Login({ navigation }) {
         {showPassword ? (
           <TextInput
             placeholder="Password"
-            style={[styles.textinput, styles.passwd]}
+           style={isDarkMode ?   styles.textinput_d : styles.textinput }
             value={password}
             onChangeText={setPassword}
           />
         ) : (
           <TextInput
             placeholder="Password"
-            style={[styles.textinput, styles.passwd]}
+           style={isDarkMode ?   styles.textinput_d : styles.textinput }
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -168,11 +181,11 @@ export default function Login({ navigation }) {
           <Text style={styles.logintxt}>Login</Text>
         </TouchableOpacity>
         <View style={styles.signup_forget}>
-          <TouchableOpacity style={styles.forgetbtn} onPress={notWorking}>
-            <Text style={styles.fg_re_txt}>Forgot password</Text>
-          </TouchableOpacity>
+          {/* <TouchableOpacity style={styles.forgetbtn} onPress={notWorking}>
+            <Text style={isDarkMode ? [styles.fg_re_txt, {color:'white'}] : styles.fg_re_txt}>Forgot password</Text>
+          </TouchableOpacity> */}
           <TouchableOpacity style={styles.forgetbtn} onPress={registerButtonClicked}>
-            <Text style={styles.fg_re_txt}>Register</Text>
+            <Text style={isDarkMode ? [styles.fg_re_txt, {color:'white'}] : styles.fg_re_txt}>Register</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -196,6 +209,13 @@ const styles = StyleSheet.create({
     paddingVertical: '20%',
    
   },
+  // container_d: {
+  //   flex: 1,
+  //   flexDirection: 'column',
+  //   backgroundColor: 'black',
+  //   paddingVertical: '20%',
+   
+  // },
   heading:{
     textAlign:'center',
     fontSize:20,
@@ -210,12 +230,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 10,
     backgroundColor: '#F3F3F3',
+    color: 'black', // Text color for light mode
+  },
+  textinput_d: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    margin: 5,
+    marginHorizontal: '5%',
+    height: 50,
+    marginBottom: 20,
+    borderRadius: 10,
+    backgroundColor: '#333333',
+    color: 'white', // Text color for dark mode
   },
   loginbtn: {
     backgroundColor: 'green',
     height: 45,
     marginHorizontal: '30%',
+    // width:60,
     borderRadius: 10,
+    justifyContent:'center',
+    alignItems:'center'
+
   },
   logintxt: {
     color: 'white',
@@ -225,7 +261,7 @@ const styles = StyleSheet.create({
   },
   signup_forget: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     flex: 1,
     marginHorizontal: '7%',
   },

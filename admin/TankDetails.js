@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView,  Image} from 'react-native';
+import { View, Text, StyleSheet, ScrollView,  Image, useColorScheme} from 'react-native';
 
 export default function TankDetails({ route }) {
+  const colorScheme = useColorScheme()
+  const isDarkMode = colorScheme==='dark'
   const [data, setData] = useState([]);
   const tank = route.params.tank;
   // console.log(tank)
@@ -12,18 +14,17 @@ export default function TankDetails({ route }) {
   }, [idata]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Tank Details</Text>
+    <View style={isDarkMode?[styles.container, {backgroundColor:'black'}]:styles.container}>
+      <Text style={styles.heading}>Tank Status Updates</Text>
       <View style={styles.infoContainer}>
         <Text style={styles.label}>Tank ID:</Text>
         <Text style={styles.value}>{tank.tank_id}</Text>
-      </View>
-      <View style={styles.infoContainer}>
         <Text style={styles.label}>Fish breed:</Text>
         <Text style={styles.value}>{tank.fish_type}</Text>
       </View>
-      <Text style={{fontSize:20}}>Updates</Text>
+     
       <ScrollView style={styles.textUpdatesContainer}>
+      {/* <Text style={{fontSize:20,marginBottom:8}}>Updates</Text> */}
       {data ? data.map((update, index) => (
             <View key={index} style={styles.updateItem}>
               {update.txt_input && (
@@ -38,7 +39,7 @@ export default function TankDetails({ route }) {
                 {new Date(update.dates).toLocaleString()}
               </Text>
             </View>
-          )):<View style={styles.noupdate}><Text>No Previous Updates</Text></View>}
+          )):<View style={isDarkMode?{}:{}}><Text style={isDarkMode?{color:'white'}:{color:'black'}}>No Previous Updates</Text></View>}
       </ScrollView>
     </View>
   );
@@ -53,21 +54,29 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   infoContainer: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginVertical: 20 ,
+    width:'auto',
+   
+    borderBottomWidth:1,
+    borderBottomColor:'white',
   },
   label: {
-    fontWeight: 'bold',
+    fontSize:20,
+    fontWeight: '600',
     marginRight: 10,
+    marginBottom:10
   },
   value: {
     flex: 1,
+    fontSize:20
   },
   textUpdatesContainer: {
-    marginTop: 20,
+    marginTop: 0,
+    
   },
    updateItem: {
     marginBottom: 16,

@@ -1,9 +1,13 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React,{useState} from 'react';
-import { View, StyleSheet, Image, Text, TouchableOpacity,Alert } from 'react-native';
+import { View, StyleSheet, Image, Text, TouchableOpacity,Alert, useColorScheme } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-
-const Profile = ({ uid, navigation }) => {
+const Profile = ({ uid}) => {
+  const colorScheme = useColorScheme()
+  const isDarkMode = colorScheme==='dark'
   // console.log(uid)
+  const navigation = useNavigation()
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [userDetails, setUserDetails] = useState({});
   const user = {
@@ -12,43 +16,38 @@ const Profile = ({ uid, navigation }) => {
   };
 
   const handleLogout = async () => {
-    // try {
-    //   // console.log('hello')
-    //   // await AsyncStorage.removeItem('username');
-    //   // await AsyncStorage.removeItem('password');
-    //   // setIsLoggedIn(false);
-    //   // setUserDetails({});
-      navigation.navigate("Login");
-    // } catch (error) {
-    //   Alert.alert('Error', 'An error occurred while logging out. Please try again.');
-    // }
+    await AsyncStorage.removeItem('logcode')
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
   };
 
   return (
-    <View style={styles.container}>
+    <View style={isDarkMode?[styles.container,{backgroundColor:'black'}]:styles.container}>
       <Image source={user.profilePhoto} style={styles.profilePhoto} />
-      <Text style={styles.name}>{uid.first_name + ' '+ uid.last_name}</Text>
-      <View style={styles.detailsContainer}>
+      <Text style={isDarkMode?[styles.name,{color:'white'}]:styles.name}>{uid.first_name + ' '+ uid.last_name}</Text>
+      <View style={isDarkMode?[styles.detailsContainer, {backgroundColor:'black'}]:styles.detailsContainer}>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Village:</Text>
-          <Text style={styles.detailText}>{uid.village}</Text>
+          <Text style={isDarkMode?[styles.detailLabel,{color:'white'}]:styles.detailLabel}>Village:</Text>
+          <Text style={isDarkMode?[styles.detailText, {color:'white'}]:styles.detailText}>{uid.village}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Block:</Text>
-          <Text style={styles.detailText}>{uid.block}</Text>
+          <Text style={isDarkMode?[styles.detailLabel,{color:'white'}]:styles.detailLabel}>Block:</Text>
+          <Text style={isDarkMode?[styles.detailText, {color:'white'}]:styles.detailText}>{uid.block}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>District:</Text>
-          <Text style={styles.detailText}>{uid.district}</Text>
+          <Text style={isDarkMode?[styles.detailLabel,{color:'white'}]:styles.detailLabel}>District:</Text>
+          <Text style={isDarkMode?[styles.detailText, {color:'white'}]:styles.detailText}>{uid.district}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>User Id</Text>
-          <Text style={styles.detailText}>{'biofloc'+uid.u_id}</Text>
+          <Text style={isDarkMode?[styles.detailLabel,{color:'white'}]:styles.detailLabel}>User Id:</Text>
+          <Text style={isDarkMode?[styles.detailText, {color:'white'}]:styles.detailText}>{'biofloc'+uid.u_id}</Text>
         </View>
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
+      <TouchableOpacity style={isDarkMode?[styles.logoutButton,{backgroundColor:'#8c0e0e', width:80}]:styles.logoutButton} onPress={handleLogout}>
+        <Text style={isDarkMode?[styles.logoutButtonText,{color:'white', textAlign:'center'}]:styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
     </View>
   );
@@ -101,6 +100,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: 'white',
+    textAlign:'center'
   },
 });
 

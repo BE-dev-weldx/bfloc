@@ -8,19 +8,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert
+  Alert,
+  Image,
+  useColorScheme
 } from "react-native";
 import Details from "./UserDetails";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-// import Icon from "react-native-vector-icons/MaterialIcons";
-import * as Keychain from 'react-native-keychain';
-import { Icon } from '@rneui/themed';
-import messaging from '@react-native-firebase/messaging';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Stack = createNativeStackNavigator();
 
 const Announcement = () => {
+  const colorScheme = useColorScheme()
+  const isDarkMode = colorScheme === 'dark'
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
@@ -31,8 +31,6 @@ const Announcement = () => {
   const handleInputChange2 = (text) => {
     setBody(text);
   };
-
- 
 
   const handleSubmit = async() => {
     // Do something with the input values when the button is clicked
@@ -89,16 +87,19 @@ const Announcement = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={isDarkMode?[styles.container, {backgroundColor:'black'}]:styles.container}>
+      <Text style={isDarkMode?[styles.txt, {color:"white"}]:styles.txt}>All users will be notified with this Announcement !</Text>
       <TextInput
         style={styles.input}
         placeholder="Title"
         value={title}
         onChangeText={handleInputChange1}
       />
-      <TextInput
-        style={styles.input}
+  <TextInput
+        style={styles.textarea} // Use the custom style for the textarea-like behavior
         placeholder="Content"
+        multiline={true} // Enable multiple lines
+        numberOfLines={4} // Set the initial number of lines (you can adjust this as needed)
         value={body}
         onChangeText={handleInputChange2}
       />
@@ -107,23 +108,10 @@ const Announcement = () => {
   );
 };
 
-
-
 const AdminPanel = ({ navigation }) => {
 
-  // const unsubscribeNotificationOpenedApp = messaging().onNotificationOpenedApp((remoteMessage) => {
-  //   // console.log('use condom, fuck random:', remoteMessage);
-  
-  //   // Step 3: Handle the behavior you want when the user opens the app by clicking the notification
-  //   // For example, navigate to a specific screen based on the notification data.
-  
-  //   // Assuming the notification data contains a "screen" key that specifies the target screen name
-   
-  
-  
-  //     navigation.navigate('Login');
-  
-  // });
+  const colorScheme = useColorScheme()
+const isDarkMode = colorScheme === 'dark'
    
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -144,6 +132,8 @@ const AdminPanel = ({ navigation }) => {
     // unsubscribeNotificationOpenedApp()
     // checkLoginStatus();
   }, []);
+
+
   const [state, setState] = useState("Odisha");
   const [district, setDistrict] = useState();
   const [pincode, setPincode] = useState("");
@@ -378,11 +368,18 @@ const AdminPanel = ({ navigation }) => {
       <Text>{item.name}</Text>
     </TouchableOpacity>
   );
+  const handleLogout = async () =>{
+    await AsyncStorage.removeItem('logcode')
+    navigation.navigate('Login');
+  }
   return (
-    <View style={styles.container}>
+    <View style={isDarkMode?[styles.container, {backgroundColor:'black'}]:styles.container}>
       {search ? (
         <View>
-          <Text style={styles.heading}>Search Farmers</Text>
+            <TouchableOpacity onPress={handleLogout} style={{marginLeft:'93%'}}>
+     <Image source={require('../assets/door.png')} style={styles.img2}/>
+    </TouchableOpacity>
+          <Text style={isDarkMode? [styles.heading, {color:'white'}]:styles.heading}>Search Farmers</Text>
           <TextInput
             style={styles.input}
             placeholder="State"
@@ -483,7 +480,8 @@ const AdminPanel = ({ navigation }) => {
       <Text style={styles.buttonText}>Search</Text>
     </TouchableOpacity>
      <TouchableOpacity onPress={()=>{navigation.navigate('Announcement')}} style={styles.button2}>
-      <Text style={styles.buttonText}>Announcement</Text>
+     {/* <Image source={require('../assets/alarm.png')} style={styles.img}/> */}
+     <Text style={styles.ntext}>Announce</Text>
     </TouchableOpacity>
 
         </View>
@@ -499,7 +497,7 @@ const AdminPanel = ({ navigation }) => {
             justifyContent: "space-between",
           }}
         >
-          <View style={styles.infoBox}>
+          <View style={isDarkMode?[styles.infoBox, {backgroundColor:'black', borderWidth:2, borderColor:'white'}]:styles.infoBox}>
             <View>
             <Text style={styles.infoText}>Dist: {district}</Text>
             <Text style={styles.infoText}>Block: {block}</Text>
@@ -514,19 +512,27 @@ const AdminPanel = ({ navigation }) => {
             onPress={() => {
               setSearch(true);
             }}
-            style={styles.searchAgainButton}
+            style={isDarkMode?[styles.searchAgainButton,{backgroundColor:'black', paddingHorizontal:0}]:styles.searchAgainButton}
           >
            
-            <Text style={styles.searchAgainButtonText}>Search Again</Text>
+            <Text style={isDarkMode ? [styles.searchAgainButtonText, {color:'#61c2ff'}]:styles.searchAgainButtonText}>Search Again</Text>
           </TouchableOpacity>
         </View>
       ) : (
         ""
       )}
-      {searchresult && searchresult.length > 0 ? (
+      {searchresult.length > 0 && search===false? (
         <View>
           <Text
-            style={{
+            style={isDarkMode?{
+              paddingVertical: 7,
+              paddingHorizontal: 5,
+              backgroundColor: "#7ce643",
+              fontSize: 18,
+              borderRadius: 5,
+              color:'black'
+              
+            }:{
               paddingVertical: 7,
               paddingHorizontal: 5,
               backgroundColor: "lightgreen",
@@ -560,8 +566,9 @@ const AdminPanel = ({ navigation }) => {
   );
 };
 
-export default function Admin({navigation
-}) {
+export default function Admin({navigation}) {
+
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -605,7 +612,7 @@ export default function Admin({navigation
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: "10%",
+    paddingTop: "3%",
     paddingHorizontal: "3%",
     backgroundColor: "#fff",
   },
@@ -660,14 +667,52 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   button2: {
-    backgroundColor: 'red',
+    // display:'flex',
+    // flex:1,
+    backgroundColor: '#fc5a03',
+    alignItems: 'center',
+    justifyContent: "space-between",
+    marginTop:'53%',
+    // borderWidth:2,
+    // borderColor:'red',
+    paddingVertical: 10,
+    // paddingHorizontal: 20,
+    borderRadius: 25,
+    width:100,
+    height:40,
+    marginLeft:'74%'
+    
+  },
+  ntext:{
+    fontSize:15,
+    fontWeight:'600',
+    color:'white',
+    textAlign:'center'
+  },
+  button3: {
+    backgroundColor: '#fc5a03',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: '50%',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    // marginTop:'0%',
+    // borderWidth:2,
+    // borderColor:'red',
+    // paddingVertical: 10,
+    // paddingHorizontal: 20,
+    // marginBottom:'60%',
+    borderRadius: 25,
+    width:50,
+    height:50,
+    // marginLeft:'87%'
+    
   },
+  img:{
+height:23,
+width:22
+  },
+  img2:{
+    height:26,
+    width:26
+      },
   buttonText: {
     color: 'white',
     fontSize: 16,
@@ -676,5 +721,21 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     marginTop:'30%'
+  },
+  textarea: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 16,
+    // Set the following two properties for the textarea-like behavior
+    height: 100, // Set the initial height
+    textAlignVertical: 'top', // Place the text at the top
+  },
+  txt:{
+    fontSize:16,
+    fontWeight:'900',
+    paddingVertical: 10,
+    color: 'black'
   }
 });

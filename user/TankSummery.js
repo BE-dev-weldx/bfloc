@@ -9,34 +9,42 @@ import {
   Image,
   ScrollView,
   SafeAreaView,
+  useColorScheme
 } from 'react-native';
 
 const TankSummery = ({ navigation, udata }) => {
-  
+  const colorScheme = useColorScheme()
+  const isDarkMode = colorScheme === 'dark'
+  // console.log('tank summery',typeof(udata))
   const [add, setAdd] = useState(false);
   const [area, setTankArea] = useState('');
   const [fish_type, setTankFishType] = useState('');
   const [capacity, setTankCapacity] = useState('');
   const [no, setNo] = useState('');
   const [tanks, setTanks] = useState([]);
-
+  const fetchData = async(id)=>{
+    fetch(`https://biofloc.onrender.com/users_tanks/${id}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setTanks(data);
+      // console.log('allt',tanks)
+    })
+    .catch((error) => {
+      console.log('Error:', error);
+    });
+  }
+  
   useEffect(() => {
     if (udata && udata.u_id) {
-      fetch(`https://biofloc.onrender.com/users_tanks/${udata.u_id}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setTanks(data);
-        })
-        .catch((error) => {
-          console.log('Error:', error);
-        });
+    
+      fetchData(udata.u_id)
     }
-  }, [udata]);
+  }, [udata, tanks]);
 
   const handleTankClick = (tank) => {
     console.log('clicked');
@@ -45,6 +53,7 @@ const TankSummery = ({ navigation, udata }) => {
     setAdd(!add)
   }
   const saveButtonClicked = (id) => {
+    // console.log('clicked')
     const tank = {
       area: area,
       fish_type: fish_type,
@@ -86,7 +95,8 @@ const TankSummery = ({ navigation, udata }) => {
         }),
       })
         .then(() => {
-          console.log('tank added');
+          // console.log('tank added');
+          fetchData(id)
           setTanks([...tanks, tank]);
           setAdd(!add);
           setTankArea('');
@@ -98,8 +108,9 @@ const TankSummery = ({ navigation, udata }) => {
         });
     }
   };
-  const handlePress = (tank) => {
-    navigation.navigate('TankUpdates', { tank });
+  const handlePress = (tank, u_id) => {
+    // console.log('tank',tank)
+    navigation.navigate('TankUpdates', { tank, u_id });
   };
 
   const handleAddTank = () => {
@@ -107,7 +118,7 @@ const TankSummery = ({ navigation, udata }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={isDarkMode?[styles.container, {backgroundColor:'black'}]:styles.container}>
       <ScrollView>
         <View>
           <View style={styles.headingcontainer}>
@@ -122,7 +133,7 @@ const TankSummery = ({ navigation, udata }) => {
                 <View>
                   <Text style={{ paddingLeft: 5 }}>Capacity </Text>
                   <TextInput
-                    placeholder="Name"
+                    placeholder="E.g 100 ltr"
                     style={styles.textinput}
                     value={area}
                     onChangeText={setTankArea}
@@ -132,7 +143,7 @@ const TankSummery = ({ navigation, udata }) => {
                 <View>
                   <Text style={{ paddingLeft: 5 }}>Fish Breed </Text>
                   <TextInput
-                    placeholder="Type fish name"
+                    placeholder="E.g Talapia"
                     style={styles.textinput}
                     value={fish_type}
                     onChangeText={setTankFishType}
@@ -142,7 +153,7 @@ const TankSummery = ({ navigation, udata }) => {
                 <View>
                   <Text style={{ paddingLeft: 5 }}>Area of tank </Text>
                   <TextInput
-                    placeholder="Area of the tank"
+                    placeholder="E.g 30 sqft."
                     style={styles.textinput}
                     value={capacity}
                     onChangeText={setTankCapacity}
@@ -174,7 +185,7 @@ const TankSummery = ({ navigation, udata }) => {
 
             {!add ? (
               <TouchableOpacity
-                style={styles.addbtn}
+                style={isDarkMode?[styles.addbtn,{backgroundColor:'#1cb2b8'}]:styles.addbtn}
                 onPress={handleAddTank}
               >
                 <Text style={styles.addbtntext}>Add Tank</Text>
@@ -192,7 +203,7 @@ const TankSummery = ({ navigation, udata }) => {
                   <Text style={styles.text}>Area: {tank.capacity}</Text>
                 </View>
 
-                <TouchableOpacity onPress={() => handlePress(tank)}>
+                <TouchableOpacity onPress={() => handlePress(tank,udata.u_id)}>
                   <Text style={styles.text}>Update Status</Text>
                 </TouchableOpacity>
               </View>
@@ -208,7 +219,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    paddingTop:'10%',
+    // paddingTop:'10%',
   },
   headingcontainer: {},
   headertext: {
@@ -216,19 +227,22 @@ const styles = StyleSheet.create({
     borderBottomColor: 'silver',
     borderBottomWidth: 1,
     fontSize:20,
-    marginTop:'5%',
+    padding:"5%"
+    // marginTop:'5%',
   },
   addbtn: {
-    backgroundColor: 'skyblue',
+    backgroundColor: '#0e828c',
     width: 100,
-    borderRadius: 2,
+    borderRadius: 5,
     margin: 10,
     alignSelf: 'flex-end',
+    
   },
   addbtntext: {
     color: 'white',
-    padding: 10,
+    padding: 7,
     textAlign: 'center',
+    fontSize:17
   },
   textinput: {
     height: 40,
@@ -279,9 +293,10 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   yourtank_heading: {
-    fontSize: 17,
+    fontSize: 19,
     marginHorizontal:'3%',
     marginBottom:'3%',
+    fontWeight:'500'
   },
   addtankcontainer: {
     marginTop: 20,
